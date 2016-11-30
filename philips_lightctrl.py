@@ -15,7 +15,6 @@ class Light():
         self.bri = 254
         self.color = 'white'
         self.last_reachable_status = None
-        self.name = self._get_name()
         
     def _create_colors(self):
         c = Converter()
@@ -30,10 +29,22 @@ class Light():
         
     def __str__(self):
         return "{:<30}{:<20}".format(self.name, "yes" if self.reachable() else "no")
-
-    def _get_name(self):
-        return self.bridge.get_light(self.lid, 'name')
     
+    @property
+    def name(self):
+        try:
+            return self.cached_name
+        except AttributeError:
+            self.cached_name = self._get('name')
+        return self.cached_name
+
+    @name.setter
+    def name(self, value):
+        self._set('name', value)
+        self.cached_name = self._get('name')
+        if self.cached_name != value:
+            print("ERROR: Failed to set name")
+        
     def reachable(self):
         return self.bridge.get_light(self.lid, 'reachable')
 
@@ -51,9 +62,11 @@ class Light():
         self._set_color(self.color)
             
     def _set(self, key, value):
-        #print("setting", key, value)
         self.bridge.set_light(self.lid, key, value)
-    
+
+    def _get(self, key):
+        return self.bridge.get_light(self.lid, key)
+        
     def _on(self):
         self._set('on', True)
 
@@ -121,15 +134,29 @@ class PhilipsLightController(LightController):
         for l in self.lights:
             l.print_connection_status_updates()
 
-    
+    def light_from_name(self, name):
+        return next((l for l in self.lights if l.name==name), None)
 
 
             
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("bridge_ip", help="ip of the Philips Hue Bridge")
-    parser.add_argument("--find_new", type=bool, help="Search for new lights not connected to any bridge")
+    parser.add_argument("light", help="Light id", default=None, type=str, nargs='?')
+    parser.add_argument("--set_name", type=str, help="Rename light")
     args = parser.parse_args()
 
     c = PhilipsLightController(args.bridge_ip)
+
+    if args.light:
+        try:
+            light = c.lights[int(args.light)]
+        except (TypeError, IndexError, ValueError):
+            light = c.light_from_name(args.light)
+            if not light:
+                parser.error("light '{}' not found.".format(args.light))
+
+        if args.set_name:
+            light.name = args.set_name
+
     c.print_status()
