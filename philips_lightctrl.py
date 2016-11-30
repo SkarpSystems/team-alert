@@ -110,7 +110,7 @@ class PhilipsLightController(LightController):
     def __init__(self, ip='192.168.11.111'):
         self.color_converter = Converter()
         self.bridge = self._connect_to_bridge(ip)
-        self.lights = self._get_lights(self.bridge)
+        self.lights = self._create_lights(self.bridge)
         
     def _connect_to_bridge(self, ip):
         try:
@@ -122,13 +122,13 @@ class PhilipsLightController(LightController):
             exit(1)
         return b
 
-    def _get_lights(self, bridge):
+    def _create_lights(self, bridge):
         return [Light(bridge, key) for key in bridge.get_light_objects('id').keys()]
 
     def print_status(self):
-        print("{:<30}{:<20}".format("Light Name", "Reachable"))
-        for l in self.lights:
-            print(l)
+        print("{:<6}{:<30}{:<20}".format("Id", "Name", "Reachable"))
+        for i, l in enumerate(self.lights):
+            print("{:<6}{}".format(i, l))
 
     def print_connection_status_updates(self):
         for l in self.lights:
@@ -142,7 +142,7 @@ class PhilipsLightController(LightController):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("bridge_ip", help="ip of the Philips Hue Bridge")
-    parser.add_argument("light", help="Light id", default=None, type=str, nargs='?')
+    parser.add_argument("light", help="Light id or name", default=None, type=str, nargs='?')
     parser.add_argument("--set_name", type=str, help="Rename light")
     args = parser.parse_args()
 
@@ -159,4 +159,6 @@ if __name__ == "__main__":
         if args.set_name:
             light.name = args.set_name
 
-    c.print_status()
+    # Print status if no other cmd is given
+    if not args.set_name:
+        c.print_status()
