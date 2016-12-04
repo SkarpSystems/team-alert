@@ -84,18 +84,22 @@ configs = [
 syslog.syslog('team-alert initializing...')
 
 c = PhilipsLightController(args.huebridge)
-lights = c.lights
 jobs = get_jenkins_jobs(args.jenkins)
 
 # Initialize
-for light in lights:
+for light in c.lights:
     light.set_brightness(255)
     light.off()
 
 visualizations = []
 for cfg in configs:
     monitored_jobs = [job for job in jobs if job.name in cfg['jobs_to_watch']]
-    visualizations.append(Visualization([lights[cfg['light']]], monitored_jobs))
+    light = c.light_from_name(cfg['light'])
+    if not light:
+        print("Configured light {} does not exists on hue bridge {}".format(
+            cfg['light'], args.huebridge))
+        exit(1)
+    visualizations.append(Visualization([light], monitored_jobs))
 
 for v in visualizations:
     print(v)
