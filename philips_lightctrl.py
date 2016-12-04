@@ -153,6 +153,13 @@ class PhilipsLightController(LightController):
         else:
             print("Failed to start search")
 
+    # Undocumented way of stealing lights from another bridge.
+    # The lights must be close to the bridge for this to work.
+    def touch_link(self):
+        address = '/api/' + self.bridge.username + '/config'
+        data = '{"touchlink":true}'
+        result = self.bridge.request('PUT', address, data)
+
 
 def get_light(parser, ctrl, id_or_name):
     try:
@@ -172,6 +179,7 @@ if __name__ == "__main__":
     parser.add_argument("--flash", action="store_true", help="Flash light(s) for 15 sec")
     parser.add_argument("--find-new-lights", action="store_true", help="Start a search for new lights")
     parser.add_argument("--remove", action="store_true", help="Remove light from bridge")
+    parser.add_argument("--steal", action="store_true", help="Steal nearby lights bound to another bridge")
     
     args = parser.parse_args()
 
@@ -186,7 +194,10 @@ if __name__ == "__main__":
 
     if args.find_new_lights:
         c.start_search_for_new_lights()
-        
+
+    if args.steal:
+        c.touch_link()
+
     for light in lights:
         if args.rename:
             light.name = args.rename
