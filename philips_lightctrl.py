@@ -108,7 +108,6 @@ class LightController():
         
 class PhilipsLightController(LightController):
     def __init__(self, ip='192.168.11.111'):
-        self.color_converter = Converter()
         self.bridge = self._connect_to_bridge(ip)
         self.lights = self._create_lights(self.bridge)
         
