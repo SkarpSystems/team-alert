@@ -136,8 +136,15 @@ class PhilipsLightController(LightController):
     def light_from_name(self, name):
         return next((l for l in self.lights if l.name==name), None)
 
+    def start_search_for_new_lights(self):
+        address = '/api/' + self.bridge.username + '/lights'
+        result = self.bridge.request(mode='POST', address=address)
+        if 'success' in result[0]:
+            print("Search started")
+        else:
+            print("Failed to start search")
 
-    
+
 def get_light(parser, ctrl, id_or_name):
     try:
         return ctrl.lights[int(id_or_name)]
@@ -146,15 +153,15 @@ def get_light(parser, ctrl, id_or_name):
         if light:
             return light
         parser.error("light '{}' not found.".format(id_or_name))
-    
-    
-            
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("bridge_ip", help="ip of the Philips Hue Bridge")
     parser.add_argument("light", help="Light ids or names", default=[], type=str, nargs='*')
     parser.add_argument("--rename", type=str, help="Rename light")
     parser.add_argument("--flash", action="store_true", help="Flash light(s) for 15 sec")
+    parser.add_argument("--find-new-lights", action="store_true", help="Start a search for new lights")
     args = parser.parse_args()
 
     c = PhilipsLightController(args.bridge_ip)
@@ -166,6 +173,9 @@ if __name__ == "__main__":
 
         c.print_status()
 
+    if args.find_new_lights:
+        c.start_search_for_new_lights()
+        
     for light in lights:
         if args.rename:
             light.name = args.rename
