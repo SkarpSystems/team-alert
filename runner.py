@@ -81,11 +81,6 @@ syslog.syslog('team-alert initializing...')
 c = PhilipsLightController(args.huebridge)
 jobs = get_jenkins_jobs(args.jenkins)
 
-# Initialize
-for light in c.lights:
-    light.set_brightness(255)
-    light.off()
-
 visualizations = []
 for cfg in configs:
     monitored_jobs = [job for job in jobs if job.name in cfg['jobs_to_watch']]
