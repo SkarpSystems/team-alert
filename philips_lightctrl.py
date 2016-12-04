@@ -138,27 +138,38 @@ class PhilipsLightController(LightController):
         return next((l for l in self.lights if l.name==name), None)
 
 
+    
+def get_light(parser, ctrl, id_or_name):
+    try:
+        return ctrl.lights[int(id_or_name)]
+    except (TypeError, IndexError, ValueError):
+        light = ctrl.light_from_name(id_or_name)
+        if light:
+            return light
+        parser.error("light '{}' not found.".format(id_or_name))
+    
+    
             
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("bridge_ip", help="ip of the Philips Hue Bridge")
-    parser.add_argument("light", help="Light id or name", default=None, type=str, nargs='?')
-    parser.add_argument("--set_name", type=str, help="Rename light")
+    parser.add_argument("light", help="Light ids or names", default=[], type=str, nargs='*')
+    parser.add_argument("--rename", type=str, help="Rename light")
+    parser.add_argument("--flash", action="store_true", help="Flash light(s) for 15 sec")
     args = parser.parse_args()
 
     c = PhilipsLightController(args.bridge_ip)
+    lights = [get_light(parser, c, light) for light in args.light]
 
-    if args.light:
-        try:
-            light = c.lights[int(args.light)]
-        except (TypeError, IndexError, ValueError):
-            light = c.light_from_name(args.light)
-            if not light:
-                parser.error("light '{}' not found.".format(args.light))
+    if not lights:
+        if args.rename or args.flash:
+            parser.error("missing argument: light")
 
-        if args.set_name:
-            light.name = args.set_name
-
-    # Print status if no other cmd is given
-    if not args.set_name:
         c.print_status()
+
+    for light in lights:
+        if args.rename:
+            light.name = args.rename
+            
+        if args.flash:
+            light.flash()
