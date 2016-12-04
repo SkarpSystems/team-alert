@@ -1,7 +1,7 @@
 
 #http://www.developers.meethue.com/documentation/lights-api
 
-from phue import Bridge
+from phue import Bridge, PhueRegistrationException
 from rgb_cie import Converter
 import datetime
 import socket
@@ -118,6 +118,9 @@ class PhilipsLightController(LightController):
         except socket.error as err:
             print("Failed to connect to Philips Hue Bridge @ {ip}: {err}"
                   .format(ip=ip, err=err))
+            exit(1)
+        except PhueRegistrationException:
+            print("Press link button on Philips Hue Bridge and rerun within 30 sec")
             exit(1)
         return b
 
