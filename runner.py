@@ -4,6 +4,7 @@ from time import sleep
 import datetime
 import syslog
 import argparse
+from config import configs
 
 class Visualization():
     def __init__(self, lights, jobs):
@@ -68,18 +69,12 @@ class Visualization():
     def _all_failures_claimed(self):
         return all([job.is_claimed() for job in self._failed_jobs()])
 
-
+    
 parser = argparse.ArgumentParser()
 parser.add_argument("huebridge", help="ip of the Philips Hue Bridge")
 parser.add_argument("jenkins", help="url of a jenkins server")
 parser.add_argument("--poll_rate", default=10, type=int, help="seconds delay between each update")
 args = parser.parse_args()
-
-configs = [
-    {'light': 0, 'jobs_to_watch': ['JobA']},
-    {'light': 1, 'jobs_to_watch': ['JobB']},
-    {'light': 2, 'jobs_to_watch': ['JobC']},
-]
 
 syslog.syslog('team-alert initializing...')
 
