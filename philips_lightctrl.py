@@ -139,6 +139,12 @@ class PhilipsLightController(LightController):
     def light_from_name(self, name):
         return next((l for l in self.lights if l.name==name), None)
 
+    def remove_light(self, light):
+        address = '/api/' + self.bridge.username + '/lights/' + str(light.lid)
+        result = self.bridge.request(mode='DELETE', address=address)
+        if not 'success' in result[0]:
+            print("Failed to remove light")
+
     def start_search_for_new_lights(self):
         address = '/api/' + self.bridge.username + '/lights'
         result = self.bridge.request(mode='POST', address=address)
@@ -165,6 +171,8 @@ if __name__ == "__main__":
     parser.add_argument("--rename", type=str, help="Rename light")
     parser.add_argument("--flash", action="store_true", help="Flash light(s) for 15 sec")
     parser.add_argument("--find-new-lights", action="store_true", help="Start a search for new lights")
+    parser.add_argument("--remove", action="store_true", help="Remove light from bridge")
+    
     args = parser.parse_args()
 
     c = PhilipsLightController(args.bridge_ip)
@@ -185,3 +193,6 @@ if __name__ == "__main__":
             
         if args.flash:
             light.flash()
+
+        if args.remove:
+            c.remove_light(light)
