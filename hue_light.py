@@ -1,6 +1,3 @@
-
-#http://www.developers.meethue.com/documentation/lights-api
-
 from phue import Bridge, PhueRegistrationException
 from rgb_cie import Converter
 import datetime
@@ -106,7 +103,7 @@ class LightController():
     def __init__(self):
         self.lights = []
         
-class PhilipsLightController(LightController):
+class HueLightController(LightController):
     def __init__(self, ip='192.168.11.111'):
         self.bridge = self._connect_to_bridge(ip)
         self.lights = self._create_lights(self.bridge)

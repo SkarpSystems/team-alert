@@ -1,5 +1,5 @@
-from jenkins_source import print_all_jobs, get_jenkins_jobs
-from philips_lightctrl import PhilipsLightController
+from jenkins_source import get_jenkins_jobs
+from hue_light import HueLightController
 from time import sleep
 import datetime
 import syslog
