@@ -8,7 +8,7 @@ One or more jenkins jobs is set up to control a lamp.
 * Yellow - all failed jobs have been *claimed* in Jenkins (someone is working on a fix)
 * Flashing - The status did just change
 
-Currently there are three usable python modues:
+Currently there are three usable python modules:
 
 * runner.py - The main program and update loop
 * hue_light.py - Interface to Philips Hue Bridge
