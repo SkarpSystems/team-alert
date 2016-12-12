@@ -25,7 +25,7 @@ class Light():
             }
         
     def __str__(self):
-        return "{:<30}{:<20}".format(self.name, "yes" if self.reachable() else "no")
+        return "{:<30}{:<20}".format(self.name, "yes" if self.reachable else "no")
     
     @property
     def name(self):
@@ -41,12 +41,13 @@ class Light():
         self.cached_name = self._get('name')
         if self.cached_name != value:
             print("ERROR: Failed to set name")
-        
+
+    @property
     def reachable(self):
         return self.bridge.get_light(self.lid, 'reachable')
 
     def print_connection_status_updates(self):
-        reachable = self.reachable()
+        reachable = self.reachable
         if self.last_reachable_status != reachable:
             now = datetime.datetime.now()
             timestamp = now.strftime("%Y-%m-%d %H:%M")
@@ -55,9 +56,6 @@ class Light():
             print("{}: {} is now {}".format(
                 timestamp, name, "reachable" if reachable else "out of range"))
 
-    def transmit_update(self):
-        self._set_color(self.color)
-            
     def _set(self, key, value):
         self.bridge.set_light(self.lid, key, value)
 
