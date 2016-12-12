@@ -180,7 +180,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    c = PhilipsLightController(args.bridge_ip)
+    c = HueLightController(args.bridge_ip)
     lights = [get_light(parser, c, light) for light in args.light]
 
     if not lights:
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     for light in lights:
         if args.rename:
             light.name = args.rename
-            
+
         if args.flash:
             light.flash()
 

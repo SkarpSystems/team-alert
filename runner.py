@@ -78,7 +78,7 @@ args = parser.parse_args()
 
 syslog.syslog('team-alert initializing...')
 
-c = PhilipsLightController(args.huebridge)
+c = HueLightController(args.huebridge)
 jobs = get_jenkins_jobs(args.jenkins)
 
 visualizations = []
