@@ -6,12 +6,14 @@ import argparse
 
 class Light():
     def __init__(self, associated_bridge, bridge_light_id):
-        self.bridge = associated_bridge
+        self._bridge = associated_bridge
         self.lid = bridge_light_id
+        self._name = self._get('name')
         self._create_colors()
-        self.bri = 254
-        self.color = 'white'
-        self.last_reachable_status = None
+        self._color = None
+        self._brightness = self._get('bri')
+        self._reachable = None
+        self._on = self._get('on')
         
     def _create_colors(self):
         c = Converter()
@@ -29,72 +31,79 @@ class Light():
     
     @property
     def name(self):
-        try:
-            return self.cached_name
-        except AttributeError:
-            self.cached_name = self._get('name')
-        return self.cached_name
+        return self._name
 
     @name.setter
     def name(self, value):
         self._set('name', value)
-        self.cached_name = self._get('name')
-        if self.cached_name != value:
+        self._name = self._get('name')
+        if self._name != value:
             print("ERROR: Failed to set name")
 
     @property
-    def reachable(self):
-        return self.bridge.get_light(self.lid, 'reachable')
+    def color(self):
+        return self._color
 
-    def print_connection_status_updates(self):
-        reachable = self.reachable
-        if self.last_reachable_status != reachable:
-            now = datetime.datetime.now()
-            timestamp = now.strftime("%Y-%m-%d %H:%M")
-            self.last_reachable_status = reachable
-            name = self.bridge.get_light(self.lid, 'name')
-            print("{}: {} is now {}".format(
-                timestamp, name, "reachable" if reachable else "out of range"))
-
-    def _set(self, key, value):
-        self.bridge.set_light(self.lid, key, value)
-
-    def _get(self, key):
-        return self.bridge.get_light(self.lid, key)
-        
-    def _on(self):
-        self._set('on', True)
-
-    def off(self):
-        self._set('on', False)
-
-    def set_color(self, color, brightness=None):
+    @color.setter
+    def color(self, color):
         if color in self.colors:
-            if brightness:
-                self.set_brightness(brightness)
-            else:
-                self.set_brightness()
             colorspace = self.colors[color][1]
             value = self.colors[color][0]
             self._set(colorspace, value)
-            self.color = color
+            self._color = color
         else:
-            print("WARNING: Unknown color")
-            
+            print("ERROR: Unknown color")
+
+    @property
+    def brightness(self):
+        return self._brightness
+
+    @brightness.setter
+    def brightness(self, value): # 0-254
+        if value > 254:
+            value = 254
+        self._brightness = value
+        self._set('on', (value > 0))
+        if self.on:
+            # brightness cannot be set when light is turned off
+            self._set('bri', value)
+
+    @property
+    def on(self):
+        return self._on
+
+    @on.setter
+    def on(self, value):
+        self._on = value
+        if value:
+            self._set('on', True)
+            self.brightness = self._brightness
+        else:
+            self._set('on', False)
+        
+    @property
+    def reachable(self):
+        return self._bridge.get_light(self.lid, 'reachable')
+
+    def print_connection_status_updates(self):
+        reachable = self.reachable
+        if self._reachable != reachable:
+            now = datetime.datetime.now()
+            timestamp = now.strftime("%Y-%m-%d %H:%M")
+            self._reachable = reachable
+            name = self._bridge.get_light(self.lid, 'name')
+            print("{}: {} is now {}".format(
+                  timestamp, name, "reachable" if reachable else "out of range"))
+
+    def _set(self, key, value):
+        self._bridge.set_light(self.lid, key, value)
+
+    def _get(self, key):
+        return self._bridge.get_light(self.lid, key)
+        
     def flash(self):
         self._set('alert', 'lselect')
 
-    def set_brightness(self, value=-1): # 0-254
-        if value == -1:
-            value = self.bri
-        elif value > 254:
-            value = 254
-        if value == 0:
-            self.off()
-        else:
-            self._on()
-            self._set('bri', value)
-        self.bri = value
 
 
 class LightController():
@@ -102,7 +111,7 @@ class LightController():
         self.lights = []
         
 class HueLightController(LightController):
-    def __init__(self, ip='192.168.11.111'):
+    def __init__(self, ip):
         self.bridge = self._connect_to_bridge(ip)
         self.lights = self._create_lights(self.bridge)
         

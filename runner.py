@@ -47,8 +47,8 @@ class Visualization():
 
     def _set_lights_output(self, color, brightness):
         for light in self.lights:
-            light.set_color(color)
-            light.set_brightness(brightness)
+            light.color = color
+            light.brightness = brightness
         
     def _do_flash(self):
         for light in self.lights:
