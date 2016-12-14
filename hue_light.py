@@ -184,6 +184,8 @@ if __name__ == "__main__":
     parser.add_argument("--find-new-lights", action="store_true", help="Start a search for new lights")
     parser.add_argument("--remove", action="store_true", help="Remove light from bridge")
     parser.add_argument("--steal", action="store_true", help="Steal nearby lights bound to another bridge")
+    parser.add_argument("--on", action="store_true", help="Turn on light")
+    parser.add_argument("--off", action="store_true", help="Turn off light")
     
     args = parser.parse_args()
 
@@ -211,3 +213,9 @@ if __name__ == "__main__":
 
         if args.remove:
             c.remove_light(light)
+
+        if args.off:
+            light.on = False
+
+        if args.on:
+            light.on = True
