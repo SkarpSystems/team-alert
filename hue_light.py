@@ -1,10 +1,11 @@
 from phue import Bridge, PhueRegistrationException
 from rgb_cie import Converter
+from light import Light, LightController
 import datetime
 import socket
 import argparse
 
-class Light():
+class HueLight(Light):
     def __init__(self, associated_bridge, bridge_light_id):
         self._bridge = associated_bridge
         self.lid = bridge_light_id
@@ -28,10 +29,26 @@ class Light():
         
     def __str__(self):
         return "{:<30}{:<20}".format(self.name, "yes" if self.reachable else "no")
-    
+
     @property
     def name(self):
         return self._name
+
+    @property
+    def color(self):
+        return self._color
+
+    @property
+    def brightness(self):
+        return self._brightness
+
+    @property
+    def on(self):
+        return self._on
+
+    @property
+    def reachable(self):
+        return self._bridge.get_light(self.lid, 'reachable')
 
     @name.setter
     def name(self, value):
@@ -39,10 +56,6 @@ class Light():
         self._name = self._get('name')
         if self._name != value:
             print("ERROR: Failed to set name")
-
-    @property
-    def color(self):
-        return self._color
 
     @color.setter
     def color(self, color):
@@ -54,10 +67,6 @@ class Light():
         else:
             print("ERROR: Unknown color")
 
-    @property
-    def brightness(self):
-        return self._brightness
-
     @brightness.setter
     def brightness(self, value): # 0-254
         if value > 254:
@@ -68,10 +77,6 @@ class Light():
             # brightness cannot be set when light is turned off
             self._set('bri', value)
 
-    @property
-    def on(self):
-        return self._on
-
     @on.setter
     def on(self, value):
         self._on = value
@@ -80,10 +85,6 @@ class Light():
             self.brightness = self._brightness
         else:
             self._set('on', False)
-        
-    @property
-    def reachable(self):
-        return self._bridge.get_light(self.lid, 'reachable')
 
     def print_connection_status_updates(self):
         reachable = self.reachable
@@ -105,11 +106,6 @@ class Light():
         self._set('alert', 'lselect')
 
 
-
-class LightController():
-    def __init__(self):
-        self.lights = []
-        
 class HueLightController(LightController):
     def __init__(self, ip):
         self.bridge = self._connect_to_bridge(ip)
@@ -129,7 +125,7 @@ class HueLightController(LightController):
         return b
 
     def _create_lights(self, bridge):
-        return [Light(bridge, key) for key in bridge.get_light_objects('id').keys()]
+        return [HueLight(bridge, key) for key in bridge.get_light_objects('id').keys()]
 
     def print_status(self):
         print("{:<6}{:<30}{:<20}".format("Id", "Name", "Reachable"))
