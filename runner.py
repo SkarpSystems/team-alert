@@ -1,10 +1,11 @@
 from jenkins_source import get_jenkins_jobs
+from light import Light
 from hue_light import HueLightController
 from time import sleep
 import datetime
 import syslog
 import argparse
-from config import configs
+from config import configs, virtual_lights
 
 class Visualization():
     def __init__(self, lights, jobs):
@@ -68,6 +69,28 @@ class Visualization():
     
     def _all_failures_claimed(self):
         return all([job.is_claimed() for job in self._failed_jobs()])
+            
+def light_from_name(lights, name):
+    return next((l for l in lights if l.name==name), None)
+
+def create_visualizations(configs, lights, jobs):
+    visualizations = []
+    jobs_by_name = {job.name: job for job in jobs}
+    for cfg in configs:
+        job_names_to_watch = cfg['jobs_to_watch']
+        try:
+            monitored_jobs = [jobs_by_name[name] for name in job_names_to_watch]
+        except KeyError:
+            # Failed to find all jobs specified in cfg
+            pass
+        else:
+            light = light_from_name(lights, cfg['light'])
+            if not light:
+                print("Configured light {} does not exists on hue bridge {}".format(
+                    cfg['light'], args.huebridge))
+                exit(1)
+            visualizations.append(Visualization([light], monitored_jobs))
+    return visualizations 
 
     
 parser = argparse.ArgumentParser()
@@ -78,19 +101,13 @@ args = parser.parse_args()
 
 syslog.syslog('team-alert initializing...')
 
-c = HueLightController(args.huebridge)
+hue_controller = HueLightController(args.huebridge)
+virtual_lights = [Light(**args) for args in virtual_lights]
+lights = hue_controller.lights + virtual_lights
 jobs = get_jenkins_jobs(args.jenkins)
 
-visualizations = []
-for cfg in configs:
-    monitored_jobs = [job for job in jobs if job.name in cfg['jobs_to_watch']]
-    light = c.light_from_name(cfg['light'])
-    if not light:
-        print("Configured light {} does not exists on hue bridge {}".format(
-            cfg['light'], args.huebridge))
-        exit(1)
-    visualizations.append(Visualization([light], monitored_jobs))
 
+visualizations = create_visualizations(configs, lights, jobs)
 for v in visualizations:
     print(v)
 
@@ -99,7 +116,7 @@ print("Updating status every {} sek".format(args.poll_rate))
 while True:
     for v in visualizations:
         v.update()
-    c.print_connection_status_updates()
+    hue_controller.print_connection_status_updates()
     sleep(args.poll_rate)
 
         
