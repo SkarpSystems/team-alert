@@ -2,12 +2,14 @@ from jenkins_source import get_jenkins_jobs
 from light import Light
 from hue_light import HueLightController
 from time import sleep
+import json
+from jsonschema import validate, ValidationError
 import datetime
 import syslog
 import argparse
 from config import configs, virtual_lights
 
-class Visualization():
+class Alert():
     def __init__(self, lights, jobs):
         self.name = ",".join([job.name for job in jobs])
         self.jobs = jobs
@@ -73,10 +75,11 @@ class Visualization():
 def light_from_name(lights, name):
     return next((l for l in lights if l.name==name), None)
 
-def create_visualizations(configs, lights, jobs):
-    visualizations = []
+def create_alerts(alert_cfg, lights, jobs):
+
+    alerts = []
     jobs_by_name = {job.name: job for job in jobs}
-    for cfg in configs:
+    for cfg in alert_cfg:
         job_names_to_watch = cfg['jobs_to_watch']
         try:
             monitored_jobs = [jobs_by_name[name] for name in job_names_to_watch]
@@ -89,11 +92,27 @@ def create_visualizations(configs, lights, jobs):
                 print("Configured light {} does not exists on hue bridge {}".format(
                     cfg['light'], args.huebridge))
                 exit(1)
-            visualizations.append(Visualization([light], monitored_jobs))
-    return visualizations 
+            alerts.append(Visualization([light], monitored_jobs))
+    return alerts
 
-    
+def read_config(cfg_file_name):
+    with open('alerts_cfg.schema.json') as schema_file:
+        schema = json.load(schema_file)
+    try:
+        with open(cfg_file_name) as cfg_file:
+            config = json.load(cfg_file)
+        validate(config, schema)
+    except:
+        print("Error when reading config file {}".format(cfg_file_name))
+        raise
+    else:
+        if 'virtual_lights' not in config:
+            config['virtual_lights'] = []
+        return config
+    exit(1)
+
 parser = argparse.ArgumentParser()
+parser.add_argument("alerts_cfg",type=str, help="Json configuration file")
 parser.add_argument("huebridge", help="ip of the Philips Hue Bridge")
 parser.add_argument("jenkins", help="url of a jenkins server")
 parser.add_argument("--poll_rate", default=10, type=int, help="seconds delay between each update")
@@ -101,13 +120,13 @@ args = parser.parse_args()
 
 syslog.syslog('team-alert initializing...')
 
+cfg = read_config(args.alerts_cfg)
 hue_controller = HueLightController(args.huebridge)
-virtual_lights = [Light(**args) for args in virtual_lights]
+virtual_lights = [Light(**args) for args in cfg['virtual_lights']]
 lights = hue_controller.lights + virtual_lights
 jobs = get_jenkins_jobs(args.jenkins)
+visualizations = create_alerts(cfg['alerts'], lights, jobs)
 
-
-visualizations = create_visualizations(configs, lights, jobs)
 for v in visualizations:
     print(v)
 

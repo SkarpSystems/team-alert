@@ -1,0 +1,22 @@
+{
+    "alerts": [
+        {
+            "jobs_to_watch": [ "JobA" ],
+            "light": "MyLight1"
+        },
+        {
+            "jobs_to_watch": [ "JobB" ],
+            "light": "MyLight2"
+        }
+    ],
+    "virtual_lights": [
+        {
+            "enable_debug_print": true,
+            "name": "MyLight1"
+        },
+        {
+            "enable_debug_print": true,
+            "name": "MyLight2"
+        }
+    ]
+}

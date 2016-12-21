@@ -1,0 +1,49 @@
+{
+  "title": "Alerts Configuration",
+  "description": "Configuration connecting jenkins jobs to lights",
+  "type": "object",
+  "properties": {
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "light": {
+            "type": "string"
+          },
+          "jobs_to_watch": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "light",
+          "jobs_to_watch"
+        ]
+      }
+    },
+    "virtual_lights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "enable_debug_print": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "enable_debug_print"
+        ]
+      }
+    }
+  },
+  "required": [
+    "alerts"
+  ]
+}
