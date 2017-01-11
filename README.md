@@ -8,7 +8,7 @@ One or more jenkins jobs is set up to control a lamp.
 * Yellow - all failed jobs have been *claimed* in Jenkins (someone is working on a fix)
 * Flashing - The status did just change
 
-Currently there two python modules that can be used from command line:
+Currently there are two python modules that can be used from command line:
 
 * team-alert.py - The main program and update loop scheduling
 * hue_light.py - Interface to Philips Hue Bridge
