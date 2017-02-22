@@ -57,10 +57,10 @@ class Alert():
         return not self._failed_jobs()
 
     def _failed_jobs(self):
-        return list(filter(lambda j : not j.ok(), self.jobs))
+        return list(filter(lambda j : not j.ok, self.jobs))
     
     def _all_failures_claimed(self):
-        return all([job.is_claimed() for job in self._failed_jobs()])
+        return all([job.claimed for job in self._failed_jobs()])
 
 def _light_from_name(lights, name):
     return next((l for l in lights if l.name==name), None)

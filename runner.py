@@ -1,4 +1,4 @@
-from jenkins_source import get_jenkins_jobs
+from jenkins_source import JenkinsView
 from alert import create_alerts
 from hue_light import HueLightController
 from light import Light
@@ -18,7 +18,7 @@ class Runner():
         hue_controller = HueLightController(self._hue_bridge_ip)
         virtual_lights = [Light(**args) for args in self.cfg['virtual_lights']]
         lights = hue_controller.lights + virtual_lights
-        jobs = get_jenkins_jobs(self._jenkins_ip)
+        jobs = JenkinsView(self._jenkins_ip, 'Jenkins').children
         self.alerts = create_alerts(self.cfg['alerts'], lights, jobs)
 
     def update_alerts(self):
