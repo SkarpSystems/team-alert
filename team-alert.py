@@ -19,10 +19,11 @@ parser.add_argument("huebridge", help="ip of the Philips Hue Bridge")
 parser.add_argument("jenkins", help="url of a jenkins server")
 parser.add_argument("--poll_rate", default=10, type=int, help="seconds delay between each update")
 parser.add_argument("--cfg_poll_rate", default=3600, type=int, help="seconds delay between each refresh off the config file")
+parser.add_argument("--create_missing_lights", action='store_true', help="create virtual lights for all configurated light that don't exist")
 args = parser.parse_args()
 
 syslog.syslog('team-alert initializing...')
-runner = Runner(args.alerts_cfg, args.huebridge, args.jenkins)
+runner = Runner(args.alerts_cfg, args.huebridge, args.jenkins, args.create_missing_lights)
             
 print("Updating status every {} sek".format(args.poll_rate))
 scheduler = PeriodicScheduler(time.time, time.sleep)

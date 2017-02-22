@@ -1,4 +1,5 @@
 import datetime
+from light import Light
 
 class Alert():
     def __init__(self, lights, jobs):
@@ -65,7 +66,8 @@ class Alert():
 def _light_from_name(lights, name):
     return next((l for l in lights if l.name==name), None)
     
-def create_alerts(alert_cfg, lights, jobs):
+def create_alerts(alert_cfg, lights, jobs,
+                  create_missing_lights=False):
     alerts = []
     jobs_by_name = {job.name: job for job in jobs}
     for cfg in alert_cfg:
@@ -78,8 +80,11 @@ def create_alerts(alert_cfg, lights, jobs):
         else:
             light = _light_from_name(lights, cfg['light'])
             if not light:
-                print("Configured light {} does not exists on hue bridge {}".format(
-                    cfg['light'], args.huebridge))
-                exit(1)
+                print("Configured light {} does not exist".format(cfg['light']))
+                if not create_missing_lights:
+                    print("Available lights: {}".format(', '.join((l.name for l in lights))))
+                    exit(1)
+                print("Creating virtual light {}".format(cfg['light']))
+                light = Light(name=cfg['light'], enable_debug_print=True)
             alerts.append(Alert([light], monitored_jobs))
     return alerts

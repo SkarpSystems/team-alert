@@ -7,10 +7,12 @@ from jsonschema import validate, ValidationError
 
 
 class Runner():
-    def __init__(self, cfg, hue_bridge, jenkins):
+    def __init__(self, cfg, hue_bridge, jenkins,
+                 create_missing_lights=False):
         self._hue_bridge_ip = hue_bridge
         self._jenkins_ip = jenkins
         self._cfg_path = cfg
+        self._create_missing_lights = create_missing_lights
         self.restart()
 
     def restart(self):
@@ -19,7 +21,8 @@ class Runner():
         virtual_lights = [Light(**args) for args in self.cfg['virtual_lights']]
         lights = hue_controller.lights + virtual_lights
         jobs = JenkinsView(self._jenkins_ip, 'Jenkins').children
-        self.alerts = create_alerts(self.cfg['alerts'], lights, jobs)
+        self.alerts = create_alerts(self.cfg['alerts'], lights, jobs,
+                                    self._create_missing_lights)
 
     def update_alerts(self):
         for alert in self.alerts:
