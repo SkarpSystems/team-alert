@@ -1,22 +1,19 @@
 {
     "alerts": [
         {
-            "jobs_to_watch": [ "JobA" ],
+            "jobs_to_watch": [ "JobA", "JobB" ],
             "light": "MyLight1"
         },
         {
-            "jobs_to_watch": [ "JobB" ],
-            "light": "MyLight2"
+            "jobs_to_watch": [ "JenkinsViewA" ],
+            "light": "MyLight2",
+	    "jobs_to_ignore": [ "IgnoredJobInView" ]
         }
     ],
     "virtual_lights": [
         {
             "enable_debug_print": true,
-            "name": "MyLight1"
-        },
-        {
-            "enable_debug_print": true,
-            "name": "MyLight2"
+            "name": "MyLight3"
         }
     ]
 }

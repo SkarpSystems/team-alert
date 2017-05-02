@@ -16,6 +16,15 @@
             "items": {
               "type": "string"
             }
+          },
+          "jobs_to_ignore": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "num_ignored_fails": {
+            "type": "number"
           }
         },
         "required": [

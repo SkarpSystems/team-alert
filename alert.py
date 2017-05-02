@@ -2,17 +2,19 @@ import datetime
 from light import Light
 
 class Alert():
-    def __init__(self, lights, jobs):
+    def __init__(self, lights, jobs, allow_nr_failed_jobs=0):
         self.name = ",".join([job.name for job in jobs])
         self.jobs = jobs
         self.lights = lights
         self.last_status = None
         self.first_update = True
+        self._allow_nr_failed_jobs = allow_nr_failed_jobs
         
     def __str__(self):
         jobs = ",".join([job.name for job in self.jobs])
         lights = ",".join([light.name for light in self.lights])
-        return "Alert: {lights} is showing status from {jobs}".format(jobs=jobs, lights=lights)
+        return "Alert: {lights} is showing status from {numjobs} jobs allowing {fails} fails".format(
+            numjobs=len(self.jobs), lights=lights, fails=self._allow_nr_failed_jobs)
 
     def update(self):
         for job in self.jobs:
@@ -36,7 +38,8 @@ class Alert():
             # print status to terminal on change
             now = datetime.datetime.now()
             timestamp = now.strftime("%Y-%m-%d %H:%M")
-            print("{}: {} is now {}".format(timestamp, self.name, color))
+            lights = ",".join([light.name for light in self.lights])
+            print("{}: {} is now {}".format(timestamp, lights, color))
 
         self.first_update = False
 
@@ -58,33 +61,7 @@ class Alert():
         return not self._failed_jobs()
 
     def _failed_jobs(self):
-        return list(filter(lambda j : not j.ok, self.jobs))
+        return list(filter(lambda j : not j.ok(allow_nr_failed_jobs=self._allow_nr_failed_jobs), self.jobs))
     
     def _all_failures_claimed(self):
         return all([job.claimed for job in self._failed_jobs()])
-
-def _light_from_name(lights, name):
-    return next((l for l in lights if l.name==name), None)
-    
-def create_alerts(alert_cfg, lights, jobs,
-                  create_missing_lights=False):
-    alerts = []
-    jobs_by_name = {job.name: job for job in jobs}
-    for cfg in alert_cfg:
-        job_names_to_watch = cfg['jobs_to_watch']
-        try:
-            monitored_jobs = [jobs_by_name[name] for name in job_names_to_watch]
-        except KeyError:
-            # Failed to find all jobs specified in cfg
-            pass
-        else:
-            light = _light_from_name(lights, cfg['light'])
-            if not light:
-                print("Configured light {} does not exist".format(cfg['light']))
-                if not create_missing_lights:
-                    print("Available lights: {}".format(', '.join((l.name for l in lights))))
-                    exit(1)
-                print("Creating virtual light {}".format(cfg['light']))
-                light = Light(name=cfg['light'], enable_debug_print=True)
-            alerts.append(Alert([light], monitored_jobs))
-    return alerts
