@@ -54,7 +54,11 @@ class Runner():
 
         monitored_jobs = [job for job in monitored_jobs if job.name not in ignored_jobs]
 
-        print("{} watches {} jobs and allows {} fails".format(alert_cfg['light'], len(monitored_jobs), num_ignored_fails))
+        if len(monitored_jobs) <= 1:
+            job_string = monitored_jobs[0]
+        else:
+            job_string = len(monitored_jobs)
+        print("{} watches {} jobs and allows {} fails".format(alert_cfg['light'], job_string, num_ignored_fails))
         if ignored_jobs:
             print("{} explicitly ignores {}".format(alert_cfg['light'], ",".join(ignored_jobs)))
 
@@ -68,5 +72,4 @@ class Runner():
             light = Light(name=alert_cfg['light'], enable_debug_print=True)
 
         alert = Alert([light], monitored_jobs, num_ignored_fails)
-        print(alert)
         return alert
