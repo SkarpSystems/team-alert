@@ -52,7 +52,7 @@ class Runner():
         for name in alert_cfg['jobs_to_watch']:
             monitored_jobs += jenkins.get_jobs(name)
 
-        monitored_jobs = [job for job in monitored_jobs if job.name not in ignored_jobs]
+        monitored_jobs = [job for job in monitored_jobs if not any(ignored in job.name for ignored in ignored_jobs)]
 
         if len(monitored_jobs) <= 1:
             job_string = monitored_jobs[0]
