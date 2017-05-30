@@ -41,6 +41,9 @@ class Alert():
             lights = ",".join([light.name for light in self.lights])
             print("{}: {} is now {}".format(timestamp, lights, color))
 
+            if not self._all_failures_claimed():
+                print("Non claimed failed jobs: {}".format(",".join([job.name for job in self._all_non_claimed_failed_jobs()])))
+
         self.first_update = False
 
     def _set_lights_output(self, color, brightness):
@@ -64,4 +67,7 @@ class Alert():
         return list(filter(lambda j : not j.ok(allow_nr_failed_jobs=self._allow_nr_failed_jobs), self.jobs))
     
     def _all_failures_claimed(self):
-        return all([job.claimed for job in self._failed_jobs()])
+        return not self._all_non_claimed_failed_jobs()
+
+    def _all_non_claimed_failed_jobs(self):
+        return list(filter(lambda job : not job.claimed, self._failed_jobs()))
