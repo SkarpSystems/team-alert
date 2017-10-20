@@ -50,18 +50,18 @@ class JenkinsJob():
 
     @property
     def nr_times_same_state(self):
-        if self._last_failed_build_nr and self._last_successful_build_nr:
-            return abs(self._last_failed_build_nr - self._last_successful_build_nr)
+        if self._last_failed_build_nr and self._last_stable_build_nr:
+            return abs(self._last_failed_build_nr - self._last_stable_build_nr)
         elif (self._last_failed_build_nr and self._oldest_build_nr):
            return self._last_failed_build_nr - self._oldest_build_nr
         elif (self._last_failed_build_nr and self._oldest_build_nr):
-           return self._last_successful_build_nr - self._oldest_build_nr
+           return self._last_stable_build_nr - self._oldest_build_nr
         else:
             return 0
 
     @property
     def last_ok(self):
-        return self._last_build_nr == self._last_successful_build_nr
+        return self._last_build_nr == self._last_stable_build_nr
         
     @property
     def claimed(self):
@@ -73,12 +73,12 @@ class JenkinsJob():
         self._oldest_build_nr = None
         self._last_build_nr = None
         self._last_failed_build_nr = None
-        self._last_successful_build_nr = None
+        self._last_stable_build_nr = None
         self._claimed = False
         
         if 'builds' not in data or not data['builds'] or \
-           'lastSuccessfulBuild' not in data or \
            'lastFailedBuild' not in data or \
+           'lastStableBuild' not in data or \
            'lastCompletedBuild' not in data:
             print("Missing data in jenkins job api")
             return
@@ -90,8 +90,8 @@ class JenkinsJob():
 
         if data['lastFailedBuild']:
             self._last_failed_build_nr = data['lastFailedBuild'].get('number', None)
-        if data['lastSuccessfulBuild']:
-            self._last_successful_build_nr = data['lastSuccessfulBuild'].get('number', None)
+        if data['lastStableBuild']:
+            self._last_stable_build_nr = data['lastStableBuild'].get('number', None)
 
         if not self.ok:
             try:
