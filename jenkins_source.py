@@ -4,6 +4,7 @@ from urllib import request
 class Jenkins():
 
     def __init__(self, url):
+        self._url = url
         top_data = _fetch_data(url)        
         try:
             self.jobs = { job['name'] : JenkinsJob(job['url']) for job in top_data['jobs'] }
@@ -11,21 +12,20 @@ class Jenkins():
         except KeyError:
             print("WARNING: Cannot parse top level jobs")
 
-        print("Jenkins got {} jobs and {} views.".format(len(self.jobs), len(self.view_urls)))
+        print("Jenkins got {} jobs and {} views. ({})".format(
+            len(self.jobs), len(self.view_urls), self._url))
 
     def get_jobs(self, job_or_view_name):
         if job_or_view_name in self.jobs:
             return [self.jobs[job_or_view_name]]
-        elif job_or_view_name in self.view_urls:
+        if job_or_view_name in self.view_urls:
             try:
                 view_data = _fetch_data(self.view_urls[job_or_view_name])
                 return [self.jobs[job['name']] for job in view_data['jobs']]
             except KeyError:
                 print("ERROR: Missing job needed by view {}".format(job_or_view_name))
                 return []
-        else:
-            print("ERROR: Cannot find {} on Jenkins".format(job_or_view_name))
-            return []
+        return []
 
 class JenkinsJob():
 

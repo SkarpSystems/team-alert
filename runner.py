@@ -10,7 +10,7 @@ class Runner():
     def __init__(self, cfg, hue_bridge, jenkins,
                  create_missing_lights=False):
         self._hue_bridge_ip = hue_bridge
-        self._jenkins_ip = jenkins
+        self._jenkins_ips = jenkins
         self._cfg_path = cfg
         self._create_missing_lights = create_missing_lights
         self.restart()
@@ -22,8 +22,8 @@ class Runner():
         hue_controller = HueLightController(self._hue_bridge_ip)
         virtual_lights = [Light(**args) for args in self.cfg['virtual_lights']]
         lights = hue_controller.lights + virtual_lights
-        jenkins = Jenkins(self._jenkins_ip)
-        self.alerts = [self.create_alert(cfg, lights, jenkins, self._create_missing_lights) for cfg in self.cfg['alerts']]
+        jenkinses = [Jenkins(ip) for ip in self._jenkins_ips]
+        self.alerts = [self.create_alert(cfg, lights, jenkinses, self._create_missing_lights) for cfg in self.cfg['alerts']]
 
     def update_alerts(self):
         for alert in self.alerts:
@@ -44,17 +44,18 @@ class Runner():
                 config['virtual_lights'] = []
             self.cfg = config
 
-    def create_alert(self, alert_cfg, lights, jenkins, create_missing_lights=False):
+    def create_alert(self, alert_cfg, lights, jenkinses, create_missing_lights=False):
         monitored_jobs = []
         num_ignored_fails = alert_cfg.get('num_ignored_fails', 0)
         ignored_jobs = alert_cfg.get('jobs_to_ignore', [])
 
         for name in alert_cfg['jobs_to_watch']:
-            monitored_jobs += jenkins.get_jobs(name)
+            for jenkins in jenkinses:
+                monitored_jobs += jenkins.get_jobs(name)
 
         monitored_jobs = [job for job in monitored_jobs if not any(ignored in job.name for ignored in ignored_jobs)]
 
-        if len(monitored_jobs) <= 1:
+        if monitored_jobs and len(monitored_jobs) <= 1:
             job_string = monitored_jobs[0]
         else:
             job_string = len(monitored_jobs)

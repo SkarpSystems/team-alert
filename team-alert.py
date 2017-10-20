@@ -16,7 +16,7 @@ class PeriodicScheduler(sched.scheduler):
 parser = argparse.ArgumentParser()
 parser.add_argument("alerts_cfg",type=str, help="Json configuration file")
 parser.add_argument("huebridge", help="ip of the Philips Hue Bridge")
-parser.add_argument("jenkins", help="url of a jenkins server")
+parser.add_argument("jenkins", nargs='+', help="url of a jenkins server")
 parser.add_argument("--poll_rate", default=10, type=int, help="seconds delay between each update")
 parser.add_argument("--cfg_poll_rate", default=3600, type=int, help="seconds delay between each refresh off the config file")
 parser.add_argument("--create_missing_lights", action='store_true', help="create virtual lights for all configurated light that don't exist")
