@@ -26,6 +26,7 @@ syslog.syslog('team-alert initializing...')
 runner = Runner(args.alerts_cfg, args.huebridge, args.jenkins, args.create_missing_lights)
             
 print("Updating status every {} sek".format(args.poll_rate))
+print("Reloading config every {} sek".format(args.cfg_poll_rate))
 scheduler = PeriodicScheduler(time.time, time.sleep)
 scheduler.enter_periodic(args.cfg_poll_rate, runner.restart, args.cfg_poll_rate)
 scheduler.enter_periodic(args.poll_rate, runner.update_alerts)
