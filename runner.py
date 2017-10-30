@@ -3,6 +3,7 @@ from alert import Alert
 from hue_light import HueLightController
 from light import Light
 import json
+from os import path, getcwd
 from jsonschema import validate, ValidationError
 import syslog
 
@@ -30,7 +31,10 @@ class Runner():
             alert.update()
 
     def _load_config(self, cfg_file_name):
-        with open('alerts_cfg.schema.json') as schema_file:
+        schema_dir = path.realpath(
+            path.join(getcwd(), path.dirname(__file__)))
+
+        with open(path.join(schema_dir, 'alerts_cfg.schema.json')) as schema_file:
             schema = json.load(schema_file)
         try:
             with open(cfg_file_name) as cfg_file:
