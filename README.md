@@ -14,3 +14,4 @@ Currently there are two python modules that can be used from command line:
 * hue_light.py - Interface to Philips Hue Bridge
 
 A configuration file sample is available as alerts_cfg_sample.json. It defines the mapping between lamps and jenkins jobs.
+Several jobs can be mapped to a lamp and the jobs can optionally be fetched from a view or via regexps.

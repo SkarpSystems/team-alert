@@ -1,4 +1,5 @@
 import ast
+from re import match
 from urllib import request
 
 class Jenkins():
@@ -15,17 +16,25 @@ class Jenkins():
         print("Jenkins got {} jobs and {} views. ({})".format(
             len(self.jobs), len(self.view_urls), self._url))
 
-    def get_jobs(self, job_or_view_name):
-        if job_or_view_name in self.jobs:
-            return [self.jobs[job_or_view_name]]
-        if job_or_view_name in self.view_urls:
-            try:
-                view_data = _fetch_data(self.view_urls[job_or_view_name])
-                return [self.jobs[job['name']] for job in view_data['jobs']]
-            except KeyError:
-                print("ERROR: Missing job needed by view {}".format(job_or_view_name))
-                return []
+    def _get_jobs_in_view(self, view_url):
+        try:
+            view_data = _fetch_data(view_url)
+            return [self.jobs['name'] for job in view_data['jobs']]
+        except KeyError:
+            print("ERROR: Missing job on jenkins {} listed in view {}".format(
+                self._url, job_or_view_name))
         return []
+
+    def get_jobs(self, job_or_view_name):
+        """
+        Returns all jobs that match a regular expression on the job name and
+        if a view name is matched; all jobs within that view is also returned.
+        """
+        regexp = job_or_view_name + '$'
+        jobs = [job for name, job in self.jobs.items() if match(regexp, name)]
+        matched_view_urls = [url for name, url in self.view_urls.items() if match(regexp, name)]
+        jobs += [self._get_jobs_in_view(url) for url in matched_view_urls]
+        return jobs
 
 class JenkinsJob():
 

@@ -1,7 +1,7 @@
 {
     "alerts": [
         {
-            "jobs_to_watch": [ "JobA", "JobB" ],
+            "jobs_to_watch": [ "JobA", "MultipleJobsB.*" ],
             "light": "MyLight1"
         },
         {
