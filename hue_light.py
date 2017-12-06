@@ -147,7 +147,7 @@ class HueLightController(LightController):
 
     def start_search_for_new_lights(self):
         address = '/api/' + self.bridge.username + '/lights'
-        result = self.bridge.request(mode='POST', address=address)
+        result = self.bridge.request(mode='POST', address=address, data={})
         if 'success' in result[0]:
             print("Search started")
         else:
